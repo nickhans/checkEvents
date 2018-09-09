@@ -37,6 +37,8 @@ def parse_events(count, event_storage, raw_html):
       event_storage[count] = event.string.strip()
       count += 1
 
+  dates = html.find_all('')
+
   return count, event_storage
 
 def retrieve_events(event_storage):
@@ -75,6 +77,8 @@ def write_files(event_storage, previous_events):
 
   f_current.close()
   f_previous.close()
+
+
 
 def main():
   event_storage = {}
