@@ -120,6 +120,7 @@ def main():
 
   event_difference = compare_events(event_storage, previous_events, event_difference)
 
+  # checks for new events and prints them
   if (len(event_difference) == 0):
     print("\nNO NEW EVENTS\n")
   else:
