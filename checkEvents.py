@@ -34,14 +34,14 @@ def parse_events(count, count2, event_temp, date_temp, raw_html):
 
   for event in events:
     if (event.string != '[Read More...]' and event.string != None and event.string != '(See all)'):
-      print('{0}. {1}'.format(count, event.string.strip()))
+      # print('{0}. {1}'.format(count, event.string.strip()))
       event_temp[count] = event.string.strip()
       count += 1
 
   dates = html.find_all('span', class_=re.compile("tribe-event-date-start"))
   
   for date in dates:
-    print('{0}. {1}'.format(count2, date.string.strip()))
+    # print('{0}. {1}'.format(count2, date.string.strip()))
     date_temp[count2] = date.string.strip()
     count2 += 1
   
@@ -119,6 +119,14 @@ def main():
   previous_events = json.loads(load_saved_data())
 
   event_difference = compare_events(event_storage, previous_events, event_difference)
+
+  if (len(event_difference) == 0):
+    print("\nNO NEW EVENTS\n")
+  else:
+    print('\nNEW EVENTS:\n')
+    for x, y in event_difference.items():
+      print('{0} : {1}'.format(x, y))
+    print('')
 
   write_files(event_storage, previous_events, event_difference)
 
