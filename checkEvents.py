@@ -80,29 +80,47 @@ def load_saved_data():
     saved_events = json.loads(data_file.read())
   return saved_events
 
-def write_files(event_storage, previous_events):
+def write_files(event_storage, previous_events, event_difference):
   f_current = open("current_events.txt", "w")
   f_previous = open("previous_events.txt", "w")
+  f_difference = open("difference_events.txt", "w")
 
   for x, y in event_storage.items():
     f_current.write('{0} {1}\n'.format(x, y))
   for x, y in previous_events.items():
     f_previous.write('{0} {1}\n'.format(x, y))
+  for x, y in event_difference.items():
+    f_difference.write('{0} {1}\n'.format(x, y))
 
   f_current.close()
   f_previous.close()
+  f_difference.close()
 
+def compare_events(event_storage, previous_events, event_difference):
+  for x in event_storage:
+    old_event = False
+    for y in previous_events:
+      if (event_storage[x] == previous_events[y] and x == y):
+        old_event = True
+    
+    if (old_event == False):
+      event_difference[x] = event_storage[x]
+
+  return event_difference
 
 
 def main():
   event_temp = {}
   date_temp = {}
   event_storage = {}
+  event_difference = {}
   event_storage = retrieve_events(event_temp, date_temp, event_storage)
   previous_events = {}
   previous_events = json.loads(load_saved_data())
 
-  write_files(event_storage, previous_events)
+  event_difference = compare_events(event_storage, previous_events, event_difference)
+
+  write_files(event_storage, previous_events, event_difference)
 
   while(True):
     option = input('Save data as current events? y for yes, n for no: ')
