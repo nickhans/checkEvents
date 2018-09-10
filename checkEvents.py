@@ -4,6 +4,7 @@ from contextlib import closing
 from bs4 import BeautifulSoup
 import re
 import json
+import sys
 
 def simple_get(url):
   try:
@@ -26,7 +27,7 @@ def is_good_response(resp):
 def log_error(e):
   print(e)
 
-def parse_events(count, event_storage, raw_html):
+def parse_events(count, count2, event_temp, date_temp, raw_html):
   html = BeautifulSoup(raw_html, 'html.parser')
   events = html.find_all('a', href=re.compile(
       "https://officenters.com/event/"))
@@ -34,25 +35,38 @@ def parse_events(count, event_storage, raw_html):
   for event in events:
     if (event.string != '[Read More...]' and event.string != None and event.string != '(See all)'):
       print('{0}. {1}'.format(count, event.string.strip()))
-      event_storage[count] = event.string.strip()
+      event_temp[count] = event.string.strip()
       count += 1
 
-  dates = html.find_all('')
+  dates = html.find_all('span', class_=re.compile("tribe-event-date-start"))
+  
+  for date in dates:
+    print('{0}. {1}'.format(count2, date.string.strip()))
+    date_temp[count2] = date.string.strip()
+    count2 += 1
+  
+  if (count != count2):
+    sys.exit("DATE / EVENT COUNT UNMATCHED")
 
-  return count, event_storage
+  return count, count2, event_temp, date_temp
 
-def retrieve_events(event_storage):
+def retrieve_events(event_temp, date_temp, event_storage):
   count = 1
+  count2 = 1
   raw_html = simple_get('https://officenters.com/events/')
-  count, event_storage = parse_events(count, event_storage, raw_html)
+  count, count2, event_temp, date_temp = parse_events(count, count2, event_temp, date_temp, raw_html)
   i = 2
   prev_count = 0
   while (prev_count != count):
     prev_count = count
     raw_html = simple_get(
         'http://officenters.com/events/?action=tribe_photo&tribe_paged=' + str(i) + '&tribe_event_display=photo')
-    count, event_storage = parse_events(count, event_storage, raw_html)
+    count, count2, event_temp, date_temp = parse_events(count, count2, event_temp, date_temp, raw_html)
     i += 1
+
+  for x in range(1, count):
+    event_storage[date_temp[x]] = event_temp[x]
+
   print("Retrieved All Events.")
   return event_storage
 
@@ -81,8 +95,10 @@ def write_files(event_storage, previous_events):
 
 
 def main():
+  event_temp = {}
+  date_temp = {}
   event_storage = {}
-  event_storage = retrieve_events(event_storage)
+  event_storage = retrieve_events(event_temp, date_temp, event_storage)
   previous_events = {}
   previous_events = json.loads(load_saved_data())
 
